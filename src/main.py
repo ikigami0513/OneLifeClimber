@@ -16,7 +16,7 @@ from menu import Menu
 class Game:
     def __init__(self):
         pygame.init()
-        self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.FULLSCREEN)
+        self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("One Life Climber")
         self.clock = pygame.time.Clock()
         self.transition = Transition(self.display_surface)
