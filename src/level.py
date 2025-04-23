@@ -4,7 +4,6 @@ from sprites import Sprite, MovingSprite, AnimatedSprite, Spike, Item, ParticleE
 from player import Player
 from groups import AllSprites
 from enemies import Tooth, Shell, Pearl
-
 from random import uniform
 
 
@@ -61,6 +60,9 @@ class Level:
     def start(self):
         self.running = True
 
+    def pause(self):
+        self.running = False
+
     def setup(self, tmx_map, level_frames, audio_files):
         # tiles
         for layer in ['BG', 'Terrain', 'FG', 'Platforms']:
@@ -100,7 +102,8 @@ class Level:
 					frames = level_frames['player'], 
 					data = self.data, 
 					attack_sound = audio_files['attack'],
-					jump_sound = audio_files['jump']
+					jump_sound = audio_files['jump'],
+                    level_bottom = self.level_bottom
                 )
             else:
                 if obj.name in ('barrel', 'crate'):
@@ -252,10 +255,6 @@ class Level:
         if self.player.hitbox_rect.right >= self.level_width:
             self.player.hitbox_rect.right = self.level_width
 
-        # bottom border
-        if self.player.hitbox_rect.bottom > self.level_bottom:
-            self.reset()
-
         # success
         if self.player.hitbox_rect.colliderect(self.level_finish_rect):
             self.running = False
@@ -272,4 +271,4 @@ class Level:
             self.attack_collision()
             self.check_constraint()
 
-            self.all_sprites.draw(self.player.hitbox_rect.center, dt)
+        self.all_sprites.draw(self.player.hitbox_rect.center, dt)

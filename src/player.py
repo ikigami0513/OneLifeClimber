@@ -7,11 +7,12 @@ from math import sin
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, collision_sprites, semi_collision_sprites, frames, data, attack_sound, jump_sound):
+    def __init__(self, pos, groups, collision_sprites, semi_collision_sprites, frames, data, attack_sound, jump_sound, level_bottom):
         # general setup
         super().__init__(groups)
         self.z = Z_LAYERS['main']
         self.data: Data = data
+        self.level_bottom = level_bottom
 
         # image
         self.frames, self.frame_index = {key: value for key, value in frames.items() if "hat" not in key}, 0
@@ -74,7 +75,7 @@ class Player(pygame.sprite.Sprite):
             falling_hat = FallingHat(
                 image=hat.image,
                 pos=hat.rect.center,
-                groups=[self.groups()[0], self.falling_hats_group]
+                groups=[self.groups(), self.falling_hats_group]
             )
             hat.kill()
 
@@ -242,7 +243,7 @@ class Player(pygame.sprite.Sprite):
         self.input()
         self.move(dt)
         self.hat_sprites.update(self.rect.topleft, self.frame_index, self.state, self.facing_right)
-        self.falling_hats_group.update(dt)
+        self.falling_hats_group.update(dt, self.level_bottom)
         self.platform_move(dt)
         self.check_contact()
 

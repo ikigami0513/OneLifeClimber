@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from sprites import Sprite, Cloud
 from random import choice, randint
-from hat import Hat
+from hat import Hat, FallingHat
 from timer_ import Timer
 
 
@@ -120,6 +120,6 @@ class AllSprites(pygame.sprite.Group):
             
     def update(self, dt: float):
         for sprite in self.sprites():
-            if not isinstance(sprite, Hat):
+            if not isinstance(sprite, Hat) and not isinstance(sprite, FallingHat):
                 sprite.update(dt)
                 

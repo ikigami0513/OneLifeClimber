@@ -52,9 +52,9 @@ class FallingHat(pygame.sprite.Sprite):
         self.gravity = 1000
         self.rotation = 0
         self.rotation_speed = 360
-        self.z = Z_LAYERS['main']
+        self.z = Z_LAYERS['fg']
 
-    def update(self, dt: float):
+    def update(self, dt: float, level_bottom: float):
         self.velocity.y += self.gravity * dt
         displacement = self.velocity * dt
         self.rect.centerx += displacement.x
@@ -63,5 +63,5 @@ class FallingHat(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.original_image, self.rotation)
         self.rect = self.image.get_frect(center=self.rect.center)
 
-        if self.rect.top > pygame.display.get_surface().get_height():
+        if self.rect.top > level_bottom:
             self.kill()

@@ -9,6 +9,7 @@ from data import Data
 from ui import UI
 from overworld import Overworld
 from transition import Transition
+from gameover_layer import GameoverLayer
 
 
 class Game:
@@ -21,6 +22,7 @@ class Game:
         self.import_assets()
 
         self.ui = UI(self.font, self.ui_frames)
+        self.game_over_layer = GameoverLayer(self.display_surface, self.reset)
         self.data = Data(self.ui, self.create_hat, self.remove_hat)
         self.tmx_maps = {
             0: load_pygame(join('..', 'data', 'levels', 'omni.tmx')),
@@ -115,17 +117,25 @@ class Game:
 			'damage': pygame.mixer.Sound(join('..', 'audio', 'damage.wav')),
 			'pearl': pygame.mixer.Sound(join('..', 'audio', 'pearl.wav')),
 		}
+        self.audio_files["jump"].set_volume(0.2)
 
         self.bg_music = pygame.mixer.Sound(join('..', 'audio', 'starlight_city.mp3'))
         self.bg_music.set_volume(0.5)
 
     def check_game_over(self):
         if self.data.health <= 0:
-            self.reset()
+            if isinstance(self.current_stage, Level):
+                self.current_stage.pause()
+            self.game_over_layer.show()
+
+        elif isinstance(self.current_stage, Level) and self.current_stage.player.hitbox_rect.bottom > self.current_stage.level_bottom:
+            self.current_stage.pause()
+            self.game_over_layer.show()
 
     def reset(self):
         self.data = Data(self.ui, self.create_hat, self.remove_hat)
         self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.start_stage_transition)
+        self.game_over_layer.hide()
 
     def run(self):
         while True:
@@ -134,14 +144,14 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                if event.type == pygame.JOYBUTTONDOWN:
-                    print("controller")
+                self.game_over_layer.handle_event(event)
 
             self.check_game_over()
             self.current_stage.run(dt)
             self.ui.update(dt, self.data.health)
             self.transition.update(dt)
             self.transition.draw()
+            self.game_over_layer.draw()
 
             pygame.display.update()
 
