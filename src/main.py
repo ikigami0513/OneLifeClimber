@@ -10,12 +10,13 @@ from ui import UI
 from overworld import Overworld
 from transition import Transition
 from gameover_layer import GameoverLayer
+from menu import Menu
 
 
 class Game:
     def __init__(self):
         pygame.init()
-        self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.FULLSCREEN)
         pygame.display.set_caption("One Life Climber")
         self.clock = pygame.time.Clock()
         self.transition = Transition(self.display_surface)
@@ -23,6 +24,7 @@ class Game:
 
         self.ui = UI(self.font, self.ui_frames)
         self.game_over_layer = GameoverLayer(self.display_surface, self.reset)
+        self.menu = Menu(self.display_surface, on_continue=self.resume_game, on_quit=self.close, on_open=self.open_menu)
         self.data = Data(self.ui, self.create_hat, self.remove_hat)
         self.tmx_maps = {
             0: load_pygame(join('..', 'data', 'levels', 'omni.tmx')),
@@ -137,20 +139,36 @@ class Game:
         self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.start_stage_transition)
         self.game_over_layer.hide()
 
+    def close(self): 
+        pygame.quit()
+        sys.exit()
+
+    def resume_game(self):
+        self.menu.hide()
+        if isinstance(self.current_stage, Level):
+            self.current_stage.start()
+
+    def open_menu(self):
+        self.menu.show()
+        if isinstance(self.current_stage, Level):
+            self.current_stage.pause()
+
     def run(self):
         while True:
             dt = self.clock.tick() / 1000
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    self.close()
+                self.menu.handle_event(event)
                 self.game_over_layer.handle_event(event)
 
             self.check_game_over()
             self.current_stage.run(dt)
-            self.ui.update(dt, self.data.health)
+            self.ui.update(dt, self.data.health, self.data.coins)
             self.transition.update(dt)
+            self.menu.update()
             self.transition.draw()
+            self.menu.draw()
             self.game_over_layer.draw()
 
             pygame.display.update()

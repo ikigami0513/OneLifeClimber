@@ -4,6 +4,6 @@
 [ok] quand on perd un chapeau, animation avec le chapeau qui tombe et roule
 [ok] transition entre les niveaux
 [ok] écran de game over
+[ok] menu
 [] écrasement du personnage à l'atterisage
-[] menu
 [] sauvegarde (pv, current level, settings)
