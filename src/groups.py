@@ -2,6 +2,7 @@ import pygame
 from settings import *
 from sprites import Sprite, Cloud
 from random import choice, randint
+from hat import Hat
 from timer_ import Timer
 
 
@@ -117,3 +118,8 @@ class AllSprites(pygame.sprite.Group):
             offset_pos = sprite.rect.topleft + self.offset
             self.display_surface.blit(sprite.image, offset_pos)
             
+    def update(self, dt: float):
+        for sprite in self.sprites():
+            if not isinstance(sprite, Hat):
+                sprite.update(dt)
+                

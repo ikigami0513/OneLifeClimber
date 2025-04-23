@@ -1,5 +1,5 @@
 build/
 dist/
-main.spec
+OneLifeClimber.spec
 venv/
 *.pyc

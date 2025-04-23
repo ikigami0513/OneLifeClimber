@@ -1,7 +1,8 @@
 import pygame
 from settings import *
 from timer_ import Timer
-from os.path import join
+from hat import HatGroup, FallingHat
+from data import Data
 from math import sin
 
 
@@ -10,24 +11,33 @@ class Player(pygame.sprite.Sprite):
         # general setup
         super().__init__(groups)
         self.z = Z_LAYERS['main']
-        self.data = data
+        self.data: Data = data
 
         # image
-        self.frames, self.frame_index = frames, 0
+        self.frames, self.frame_index = {key: value for key, value in frames.items() if "hat" not in key}, 0
+        self.hat_frames = {key: value for key, value in frames.items() if "hat" in key}
         self.state, self.facing_right = 'idle', True
         self.image = self.frames[self.state][self.frame_index]
+
+        self.hat_sprites = HatGroup(self.hat_frames)
+        self.falling_hats_group = pygame.sprite.Group()
 
         # rects
         self.rect = self.image.get_frect(topleft = pos)
         self.hitbox_rect = self.rect.inflate(-76, -36)
         self.old_rect = self.hitbox_rect.copy()
 
+        # hats
+        # On "retire" un chapeau PV car le sprite de base du personnage à déjà un chapeau sur lui
+        for i in range(self.data.health - 1):
+            self.hat_sprites.add_hat(pos, groups, self.state)
+
         # movement
         self.direction = pygame.Vector2()
-        self.speed = 200
+        self.speed = 300
         self.gravity = 1300
         self.jump = False
-        self.jump_height = 900
+        self.jump_height = 750
         self.attacking = False
 
         # collision
@@ -52,6 +62,21 @@ class Player(pygame.sprite.Sprite):
         # audio
         self.attack_sound = attack_sound
         self.jump_sound = jump_sound
+
+    def add_hat(self):
+        self.hat_sprites.add_hat(self.rect.topleft, self.groups(), self.state)
+
+    def remove_hat(self):
+        if self.hat_sprites.sprites():
+            hat = self.hat_sprites.sprites()[-1]
+            self.hat_sprites.remove(hat)
+
+            falling_hat = FallingHat(
+                image=hat.image,
+                pos=hat.rect.center,
+                groups=[self.groups()[0], self.falling_hats_group]
+            )
+            hat.kill()
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -216,6 +241,8 @@ class Player(pygame.sprite.Sprite):
 
         self.input()
         self.move(dt)
+        self.hat_sprites.update(self.rect.topleft, self.frame_index, self.state, self.facing_right)
+        self.falling_hats_group.update(dt)
         self.platform_move(dt)
         self.check_contact()
 

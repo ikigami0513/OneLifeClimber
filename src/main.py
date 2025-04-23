@@ -8,6 +8,7 @@ from support import *
 from data import Data
 from ui import UI
 from overworld import Overworld
+from transition import Transition
 
 
 class Game:
@@ -16,10 +17,11 @@ class Game:
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("One Life Climber")
         self.clock = pygame.time.Clock()
+        self.transition = Transition(self.display_surface)
         self.import_assets()
 
         self.ui = UI(self.font, self.ui_frames)
-        self.data = Data(self.ui)
+        self.data = Data(self.ui, self.create_hat, self.remove_hat)
         self.tmx_maps = {
             0: load_pygame(join('..', 'data', 'levels', 'omni.tmx')),
 			1: load_pygame(join('..', 'data', 'levels', '1.tmx')),
@@ -29,19 +31,38 @@ class Game:
 			5: load_pygame(join('..', 'data', 'levels', '5.tmx')),
         }
         self.tmx_overworld = load_pygame(join('..', 'data', 'overworld', 'overworld.tmx'))
-        self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.switch_stage)
+        self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.start_stage_transition)
         self.bg_music.play(-1)
+
+    def start_stage_transition(self, target: str, unlock: int = 0):
+        if not self.transition.active:
+            self.transition.start(
+                on_midpoint=lambda: self.switch_stage(target, unlock),
+                on_complete=lambda: self.start_level()
+            )
+
+    def start_level(self):
+        if isinstance(self.current_stage, Level):
+            self.current_stage.start()
 
     def switch_stage(self, target, unlock = 0):
         if target == 'level':
-            self.current_stage = Level(self.tmx_maps[self.data.current_level], self.level_frames, self.audio_files, self.data, self.switch_stage, self.reset)
+            self.current_stage = Level(self.tmx_maps[self.data.current_level], self.level_frames, self.audio_files, self.data, self.start_stage_transition, self.reset)
         else:  # overworld
             if unlock > 0:
                 self.data.unlocked_level = 6
             else:
                 self.data.unlocked_level += 1
             
-            self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.switch_stage)
+            self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.start_stage_transition)
+
+    def create_hat(self):
+        if isinstance(self.current_stage, Level):
+            self.current_stage.player.add_hat()
+
+    def remove_hat(self):
+        if isinstance(self.current_stage, Level):
+            self.current_stage.player.remove_hat()
 
     def import_assets(self):
         self.level_frames = {
@@ -76,8 +97,8 @@ class Game:
         self.font = pygame.font.Font(join('..', 'graphics', 'ui', 'runescape_uf.ttf'), 40)
         
         self.ui_frames = {
-			'heart': import_folder('..', 'graphics', 'ui', 'heart'), 
-			'coin':import_image('..', 'graphics', 'ui', 'coin')
+			'coin':import_image('..', 'graphics', 'ui', 'coin'),
+            'hat': import_image('..','graphics', 'ui', 'hat')
 		}
         
         self.overworld_frames = {
@@ -103,8 +124,8 @@ class Game:
             self.reset()
 
     def reset(self):
-        self.data = Data(self.ui)
-        self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.switch_stage)
+        self.data = Data(self.ui, self.create_hat, self.remove_hat)
+        self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.start_stage_transition)
 
     def run(self):
         while True:
@@ -113,10 +134,14 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                if event.type == pygame.JOYBUTTONDOWN:
+                    print("controller")
 
             self.check_game_over()
             self.current_stage.run(dt)
-            self.ui.update(dt)
+            self.ui.update(dt, self.data.health)
+            self.transition.update(dt)
+            self.transition.draw()
 
             pygame.display.update()
 

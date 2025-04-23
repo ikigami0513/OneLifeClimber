@@ -1,10 +1,10 @@
 class Data:
-    def __init__(self, ui):
+    def __init__(self, ui, create_hat, remove_hat):
         self.ui = ui
         self._coins = 0
         self._health = 2
-        self.max_health = 5
-        self.ui.create_hearts(self._health)
+        self.create_hat = create_hat
+        self.remove_hat = remove_hat
 
         self.unlocked_level = 0
         self.current_level = 0
@@ -27,8 +27,10 @@ class Data:
     
     @health.setter
     def health(self, value):
+        if value > self._health:
+            self.create_hat()
+        elif 0 < value < self._health:
+            self.remove_hat()
+
         self._health = value
-        if self._health > self.max_health:
-            self._health = self.max_health
-        self.ui.create_hearts(value)
         

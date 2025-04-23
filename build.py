@@ -11,13 +11,14 @@ def build():
         shutil.rmtree(dist_path)
     if os.path.exists("build"):
         shutil.rmtree("build")
-    if os.path.exists("main.spec"):
-        os.remove("main.spec")
+    if os.path.exists("OneLifeClimber.spec"):
+        os.remove("OneLifeClimber.spec")
 
     command = [
         "pyinstaller",
         "--onefile",
         "--noconsole",
+        "--name=OneLifeClimber",
         f"--add-data=audio:audio",
         f"--add-data=data:data",
         f"--add-data=graphics:graphics",

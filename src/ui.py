@@ -12,23 +12,19 @@ class UI:
         self.font = font
 
         # health / hearts
-        self.heart_frames = frames['heart']
-        self.heart_surf_width = self.heart_frames[0].get_width()
-        self.heart_padding = 6
+        self.hat_surf = frames['hat']
 
         # coins
         self.coin_amount = 0
         self.coin_timer = Timer(1000)
         self.coin_surf = frames['coin']
 
-    def create_hearts(self, amount):
-        for sprite in self.sprites:
-            sprite.kill()
-
-        for heart in range(amount):
-            x = 10 + heart * (self.heart_surf_width + self.heart_padding)
-            y = 10
-            Heart((x, y), self.heart_frames, self.sprites)
+    def display_hat(self, amount):
+        hat_rect = self.hat_surf.get_frect(topleft = (10, 10))
+        text_surf = self.font.render(str(amount), False, '#33323d')
+        text_rect = hat_rect.move(self.hat_surf.get_size()[0] + 5, 0)
+        self.display_surface.blit(self.hat_surf, hat_rect)
+        self.display_surface.blit(text_surf, text_rect)
 
     def display_text(self):
         if self.coin_timer.active:
@@ -43,10 +39,11 @@ class UI:
         self.coin_amount = amount
         self.coin_timer.activate()
 
-    def update(self, dt: float):
+    def update(self, dt: float, hat_amount: int):
         self.coin_timer.update()
         self.sprites.update(dt)
         self.sprites.draw(self.display_surface)
+        self.display_hat(hat_amount)
         self.display_text()
 
 

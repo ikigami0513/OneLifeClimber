@@ -14,6 +14,7 @@ class Level:
         self.data = data
         self.switch_stage = switch_stage
         self.reset = reset
+        self.running = False
 
         # level data
         self.level_width = tmx_map.width * TILE_SIZE
@@ -56,6 +57,9 @@ class Level:
         self.damage_sound: pygame.Sound = audio_files['damage']
         self.damage_sound.set_volume(0.5)
         self.pearl_sound: pygame.Sound = audio_files['pearl']
+
+    def start(self):
+        self.running = True
 
     def setup(self, tmx_map, level_frames, audio_files):
         # tiles
@@ -254,16 +258,18 @@ class Level:
 
         # success
         if self.player.hitbox_rect.colliderect(self.level_finish_rect):
+            self.running = False
             self.switch_stage('overworld', -1)
 
     def run(self, dt: float):
-        self.display_surface.fill('black')
+        if self.running:
+            self.display_surface.fill('black')
 
-        self.all_sprites.update(dt)
-        self.pearl_collision()
-        self.hit_collision()
-        self.item_collision()
-        self.attack_collision()
-        self.check_constraint()
+            self.all_sprites.update(dt)
+            self.pearl_collision()
+            self.hit_collision()
+            self.item_collision()
+            self.attack_collision()
+            self.check_constraint()
 
-        self.all_sprites.draw(self.player.hitbox_rect.center, dt)
+            self.all_sprites.draw(self.player.hitbox_rect.center, dt)
