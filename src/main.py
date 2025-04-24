@@ -27,7 +27,7 @@ class Game:
         self.menu = Menu(self.display_surface, on_continue=self.resume_game, on_quit=self.close, on_open=self.open_menu)
         self.data = Data(self.ui, self.create_hat, self.remove_hat)
         self.tmx_maps = {
-            0: load_pygame(join('..', 'data', 'levels', 'omni.tmx')),
+            0: load_pygame(join('..', 'data', 'levels', '0.tmx')),
 			1: load_pygame(join('..', 'data', 'levels', '1.tmx')),
 			2: load_pygame(join('..', 'data', 'levels', '2.tmx')),
 			3: load_pygame(join('..', 'data', 'levels', '3.tmx')),
