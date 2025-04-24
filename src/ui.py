@@ -1,12 +1,10 @@
 import pygame
 from settings import *
-from sprites import AnimatedSprite
-from random import randint
-from timer_ import Timer
+from typing import Dict
 
 
 class UI:
-    def __init__(self, font, frames):
+    def __init__(self, font: pygame.Font, frames: Dict[str, pygame.Surface]) -> None:
         self.display_surface = pygame.display.get_surface()
         self.sprites = pygame.sprite.Group()
         self.font = font
@@ -23,15 +21,14 @@ class UI:
 
         self.coin_surf = pygame.transform.scale(original_coin_surf, (target_width, target_height))
 
-
-    def display_hat(self, amount):
+    def display_hat(self, amount: int) -> None:
         hat_rect = self.hat_surf.get_frect(topleft = (10, 10))
         text_surf = self.font.render(str(amount), False, '#33323d')
         text_rect = hat_rect.move(self.hat_surf.get_size()[0] + 5, 0)
         self.display_surface.blit(self.hat_surf, hat_rect)
         self.display_surface.blit(text_surf, text_rect)
 
-    def display_coin(self, amount):
+    def display_coin(self, amount: int) -> None:
         coin_rect = self.coin_surf.get_frect(topleft = (20, 50))
         text_surf = self.font.render(str(amount), False, '#33323d')
 
@@ -39,7 +36,7 @@ class UI:
         self.display_surface.blit(self.coin_surf, coin_rect)
         self.display_surface.blit(text_surf, text_rect)
 
-    def update(self, dt: float, hat_amount: int, coin_amount: int):
+    def update(self, dt: float, hat_amount: int, coin_amount: int) -> None:
         self.sprites.update(dt)
         self.sprites.draw(self.display_surface)
         self.display_hat(hat_amount)

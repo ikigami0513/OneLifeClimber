@@ -3,7 +3,7 @@ from typing import Callable, Optional
 
 
 class Transition:
-    def __init__(self, screen: pygame.Surface, duration: float = 1.0):
+    def __init__(self, screen: pygame.Surface, duration: float = 1.0) -> None:
         self.screen = screen
         self.duration = duration
         self.black_duration = self.duration / 4
@@ -19,14 +19,14 @@ class Transition:
         self.surface.fill((0, 0, 0))
         self.surface.set_alpha(0)
 
-    def start(self, on_midpoint: Callable[[], None], on_complete: Optional[Callable[[], None]] = None):
+    def start(self, on_midpoint: Callable[[], None], on_complete: Optional[Callable[[], None]] = None) -> None:
         self.time = 0.0
         self.active = True
         self.mid_triggered = False
         self.on_midpoint = on_midpoint
         self.on_complete = on_complete if on_complete else lambda: None
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         if not self.active:
             return
         
@@ -51,7 +51,7 @@ class Transition:
 
         self.surface.set_alpha(self.alpha)
 
-    def draw(self):
+    def draw(self) -> None:
         if self.active:
             self.screen.blit(self.surface, (0, 0))
             

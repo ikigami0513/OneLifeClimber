@@ -4,14 +4,20 @@ from timer_ import Timer
 from hat import HatGroup, FallingHat
 from data import Data
 from math import sin
+from typing import Dict, List, Tuple, Union
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, collision_sprites, semi_collision_sprites, frames, data, attack_sound, jump_sound, level_bottom):
+    def __init__(
+        self, pos: Tuple[int, int], groups: Union[pygame.sprite.Group, List[pygame.sprite.Group]], 
+        collision_sprites: pygame.sprite.Group, semi_collision_sprites: pygame.sprite.Group, 
+        frames: Dict[str, List[pygame.Surface]], data: Data, 
+        attack_sound: pygame.Sound, jump_sound: pygame.Sound, level_bottom: int
+    ) -> None:
         # general setup
         super().__init__(groups)
         self.z = Z_LAYERS['main']
-        self.data: Data = data
+        self.data = data
         self.level_bottom = level_bottom
 
         # image
@@ -64,10 +70,10 @@ class Player(pygame.sprite.Sprite):
         self.attack_sound = attack_sound
         self.jump_sound = jump_sound
 
-    def add_hat(self):
+    def add_hat(self) -> None:
         self.hat_sprites.add_hat(self.rect.topleft, self.groups(), self.state)
 
-    def remove_hat(self):
+    def remove_hat(self) -> None:
         if self.hat_sprites.sprites():
             hat = self.hat_sprites.sprites()[-1]
             self.hat_sprites.remove(hat)
@@ -79,7 +85,7 @@ class Player(pygame.sprite.Sprite):
             )
             hat.kill()
 
-    def input(self):
+    def input(self) -> None:
         keys = pygame.key.get_pressed()
         input_vector = pygame.Vector2(0, 0)
 
@@ -103,14 +109,14 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_z]:
             self.jump = True
 
-    def attack(self):
+    def attack(self) -> None:
         if not self.timers['attack block'].active:
             self.attacking = True
             self.frame_index = 0
             self.timers['attack block'].activate()
             self.attack_sound.play()
 
-    def move(self, dt: float):
+    def move(self, dt: float) -> None:
         # horizontal
         self.hitbox_rect.x += self.direction.x * self.speed * dt
         self.collision("horizontal")
@@ -141,11 +147,11 @@ class Player(pygame.sprite.Sprite):
         self.semi_collision()
         self.rect.center = self.hitbox_rect.center
 
-    def platform_move(self, dt: float):
+    def platform_move(self, dt: float) -> None:
         if self.platform:
             self.hitbox_rect.topleft += self.platform.direction * self.platform.speed * dt
 
-    def check_contact(self):
+    def check_contact(self) -> None:
         floor_rect = pygame.Rect(self.hitbox_rect.bottomleft,(self.hitbox_rect.width,2))
         right_rect = pygame.Rect(self.hitbox_rect.topright + pygame.Vector2(0,self.hitbox_rect.height / 4), (2,self.hitbox_rect.height / 2))
         left_rect  = pygame.Rect(self.hitbox_rect.topleft + pygame.Vector2(-2,self.hitbox_rect.height / 4), (2,self.hitbox_rect.height / 2))
@@ -163,7 +169,7 @@ class Player(pygame.sprite.Sprite):
             if sprite.rect.colliderect(floor_rect):
                 self.platform = sprite
 
-    def collision(self, axis):
+    def collision(self, axis: str) -> None:
         for sprite in self.collision_sprites:
             if sprite.rect.colliderect(self.hitbox_rect):
                 if axis == 'horizontal':
@@ -186,7 +192,7 @@ class Player(pygame.sprite.Sprite):
                         self.hitbox_rect.bottom = sprite.rect.top
                     self.direction.y = 0
 
-    def semi_collision(self):
+    def semi_collision(self) -> None:
         if not self.timers['platform skip'].active:
             for sprite in self.semi_collision_sprites:
                 if sprite.rect.colliderect(self.hitbox_rect):
@@ -195,11 +201,11 @@ class Player(pygame.sprite.Sprite):
                         if self.direction.y > 0:
                             self.direction.y = 0
 
-    def update_timers(self):
+    def update_timers(self) -> None:
         for timer in self.timers.values():
             timer.update()
 
-    def animate(self, dt: float):
+    def animate(self, dt: float) -> None:
         self.frame_index += ANIMATION_SPEED * dt
         if self.state == 'attack' and self.frame_index >= len(self.frames[self.state]):
             self.state = 'idle'
@@ -209,7 +215,7 @@ class Player(pygame.sprite.Sprite):
         if self.attacking and self.frame_index > len(self.frames[self.state]):
             self.attacking = False
 
-    def get_state(self):
+    def get_state(self) -> None:
         if self.on_surface['floor']:
             if self.attacking:
                 self.state = 'attack'
@@ -224,19 +230,19 @@ class Player(pygame.sprite.Sprite):
                 else:
                     self.state = 'jump' if self.direction.y < 0 else 'fall'
 
-    def get_damage(self):
+    def get_damage(self) -> None:
         if not self.timers['hit'].active:
             self.data.health -= 1
             self.timers['hit'].activate()
 
-    def flicker(self):
+    def flicker(self) -> None:
         if self.timers['hit'].active and sin(pygame.time.get_ticks() * 100) >= 0:
             white_mask = pygame.mask.from_surface(self.image)
             white_surf = white_mask.to_surface()
             white_surf.set_colorkey('black')
             self.image = white_surf
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         self.old_rect = self.hitbox_rect.copy()
         self.update_timers()
 

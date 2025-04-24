@@ -11,10 +11,10 @@ class GameoverLayer:
         self.button_font = pygame.font.Font(join('..', 'graphics', 'ui', 'runescape_uf.ttf'), 36)
 
         self.button_text = "Restart"
-        self.button_color = (200, 50, 50)
-        self.button_hover_color = (255, 80, 80)
-        self.text_color = (255, 255, 255)
-        self.bg_color = (0, 0, 0, 180)
+        self.button_color = pygame.Color(200, 50, 50)
+        self.button_hover_color = pygame.Color(255, 80, 80)
+        self.text_color = pygame.Color(255, 255, 255)
+        self.bg_color = pygame.Color(0, 0, 0, 180)
 
         self.button_rect = pygame.Rect(0, 0, 300, 70)
         self.button_rect.center = (surface.get_width() // 2, surface.get_height() // 2 + 50)

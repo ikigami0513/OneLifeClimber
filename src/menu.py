@@ -4,7 +4,10 @@ from typing import Callable
 
 
 class Menu:
-    def __init__(self, surface: pygame.Surface, on_continue: Callable[[], None], on_quit: Callable[[], None], on_open: Callable[[], None]):
+    def __init__(
+        self, surface: pygame.Surface, 
+        on_continue: Callable[[], None], on_quit: Callable[[], None], on_open: Callable[[], None]
+    ) -> None:
         self.surface = surface
         self.on_continue = on_continue
         self.on_quit = on_quit
@@ -13,12 +16,12 @@ class Menu:
         self.font = pygame.font.Font(join('..', 'graphics', 'ui', 'runescape_uf.ttf'), 48)
         self.button_font = pygame.font.Font(join('..', 'graphics', 'ui', 'runescape_uf.ttf'), 36)
 
-        self.bg_color = (0, 0, 0, 180)
-        self.text_color = (255, 255, 255)
-        self.button_color = (50, 150, 50)
-        self.button_hover_color = (80, 200, 80)
-        self.quit_color = (150, 50, 50)
-        self.quit_hover_color = (200, 80, 80)
+        self.bg_color = pygame.Color(0, 0, 0, 180)
+        self.text_color = pygame.Color(255, 255, 255)
+        self.button_color = pygame.Color(50, 150, 50)
+        self.button_hover_color = pygame.Color(80, 200, 80)
+        self.quit_color = pygame.Color(150, 50, 50)
+        self.quit_hover_color = pygame.Color(200, 80, 80)
 
         self.visible = False
 
@@ -44,7 +47,7 @@ class Menu:
             elif self.quit_button.collidepoint(event.pos):
                 self.on_quit()
 
-    def update(self):
+    def update(self) -> None:
         keys = pygame.key.get_just_pressed()
 
         if keys[pygame.K_ESCAPE] and not self.visible:

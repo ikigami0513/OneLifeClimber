@@ -2,10 +2,15 @@ import pygame
 from settings import *
 from random import choice
 from timer_ import Timer
+from player import Player
+from typing import Tuple, List, Union, Callable, Dict
 
 
 class Tooth(pygame.sprite.Sprite):
-    def __init__(self, pos, frames, groups, collision_sprites):
+    def __init__(
+        self, pos: Tuple[int, int], frames: List[pygame.Surface], 
+        groups: Union[List[pygame.sprite.Group], pygame.sprite.Group], collision_sprites: pygame.sprite.Group
+    ) -> None:
         super().__init__(groups)
         self.frames, self.frame_index = frames, 0
         self.image = self.frames[self.frame_index]
@@ -18,12 +23,12 @@ class Tooth(pygame.sprite.Sprite):
 
         self.hit_timer = Timer(250)
 
-    def reverse(self):
+    def reverse(self) -> None:
         if not self.hit_timer.active:
             self.direction *= -1
             self.hit_timer.activate()
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         self.hit_timer.update()
 
         # animate
@@ -46,11 +51,16 @@ class Tooth(pygame.sprite.Sprite):
 
 
 class Shell(pygame.sprite.Sprite):
-    def __init__(self, pos, frames, groups, reverse, player, create_pearl):
+    def __init__(
+        self, pos: Tuple[int, int], frames: Dict[str, pygame.Surface], 
+        groups: Union[List[pygame.sprite.Group], pygame.sprite.Group], 
+        reverse: bool, player: Player, 
+        create_pearl: Callable[[Tuple[int, int], str], None]
+    ) -> None:
         super().__init__(groups)
 
         if reverse:
-            self.frames = {}
+            self.frames: Dict[str, pygame.Surface] = {}
             for key, surfs in frames.items():
                 self.frames[key] = [pygame.transform.flip(surf, True, False) for surf in surfs]
             self.bullet_direction = -1
@@ -58,9 +68,9 @@ class Shell(pygame.sprite.Sprite):
             self.frames = frames
             self.bullet_direction = 1
 
-        self.frame_index = 0
+        self.frame_index = 0.0
         self.state = 'idle'
-        self.image = self.frames[self.state][self.frame_index]
+        self.image = self.frames[self.state][int(self.frame_index)]
         self.rect = self.image.get_frect(topleft = pos)
         self.old_rect = self.rect.copy()
         self.z = Z_LAYERS['main']
@@ -69,18 +79,19 @@ class Shell(pygame.sprite.Sprite):
         self.has_fired = False
         self.create_pearl = create_pearl
 
-    def state_management(self):
-        player_pos, shell_pos = pygame.Vector2(self.player.hitbox_rect.center), pygame.Vector2(self.rect.center)
+    def state_management(self) -> None:
+        player_pos = pygame.Vector2(self.player.hitbox_rect.center)
+        shell_pos = pygame.Vector2(self.rect.center)
         player_near = shell_pos.distance_to(player_pos) < 500
         player_front = shell_pos.x < player_pos.x if self.bullet_direction > 0 else shell_pos.x > player_pos.x
         player_level = abs(shell_pos.y - player_pos.y) < 30
 
-        if player_near and player_level and not self.shoot_timer.active:
+        if player_near and player_front and player_level and not self.shoot_timer.active:
             self.state = 'fire'
-            self.frame_index = 0
+            self.frame_index = 0.0
             self.shoot_timer.activate()
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         self.shoot_timer.update()
         self.state_management()
 
@@ -94,14 +105,18 @@ class Shell(pygame.sprite.Sprite):
                 self.create_pearl(self.rect.center, self.bullet_direction)
                 self.has_fired = True
         else:
-            self.frame_index = 0
+            self.frame_index = 0.0
             if self.state == 'fire':
                 self.state = 'idle'
                 self.has_fired = False
 
 
 class Pearl(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, surf, direction, speed):
+    def __init__(
+        self, pos: Tuple[int, int], 
+        groups: Union[List[pygame.sprite.Group], pygame.sprite.Group], 
+        surf: pygame.Surface, direction: str, speed: int
+    ) -> None:
         self.pearl = True
         super().__init__(groups)
         self.image = surf
@@ -109,18 +124,18 @@ class Pearl(pygame.sprite.Sprite):
         self.direction = direction
         self.speed = speed
         self.z = Z_LAYERS['main']
-        self.timers = {
+        self.timers: Dict[str, Timer] = {
             "lifetime": Timer(5000),
             "reverse": Timer(250)
         }
         self.timers['lifetime'].activate()
 
-    def reverse(self):
+    def reverse(self) -> None:
         if not self.timers['reverse'].active:
             self.direction *= -1
             self.timers['reverse'].activate()
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         for timer in self.timers.values():
             timer.update()
 

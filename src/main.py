@@ -1,5 +1,6 @@
 import sys
 import pygame
+import pytmx
 from settings import *
 from level import Level
 from pytmx.util_pygame import load_pygame
@@ -14,7 +15,7 @@ from menu import Menu
 
 
 class Game:
-    def __init__(self):
+    def __init__(self) -> None:
         pygame.init()
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("One Life Climber")
@@ -26,7 +27,7 @@ class Game:
         self.game_over_layer = GameoverLayer(self.display_surface, self.reset)
         self.menu = Menu(self.display_surface, on_continue=self.resume_game, on_quit=self.close, on_open=self.open_menu)
         self.data = Data(self.ui, self.create_hat, self.remove_hat)
-        self.tmx_maps = {
+        self.tmx_maps: Dict[int, pytmx.TiledMap] = {
             0: load_pygame(join('..', 'data', 'levels', '0.tmx')),
 			1: load_pygame(join('..', 'data', 'levels', '1.tmx')),
 			2: load_pygame(join('..', 'data', 'levels', '2.tmx')),
@@ -38,18 +39,18 @@ class Game:
         self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.start_stage_transition)
         self.bg_music.play(-1)
 
-    def start_stage_transition(self, target: str, unlock: int = 0):
+    def start_stage_transition(self, target: str, unlock: int = 0) -> None:
         if not self.transition.active:
             self.transition.start(
                 on_midpoint=lambda: self.switch_stage(target, unlock),
                 on_complete=lambda: self.start_level()
             )
 
-    def start_level(self):
+    def start_level(self) -> None:
         if isinstance(self.current_stage, Level):
             self.current_stage.start()
 
-    def switch_stage(self, target, unlock = 0):
+    def switch_stage(self, target: str, unlock: int = 0) -> None:
         if target == 'level':
             self.current_stage = Level(self.tmx_maps[self.data.current_level], self.level_frames, self.audio_files, self.data, self.start_stage_transition, self.reset)
         else:  # overworld
@@ -60,15 +61,15 @@ class Game:
             
             self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.start_stage_transition)
 
-    def create_hat(self):
+    def create_hat(self) -> None:
         if isinstance(self.current_stage, Level):
             self.current_stage.player.add_hat()
 
-    def remove_hat(self):
+    def remove_hat(self) -> None:
         if isinstance(self.current_stage, Level):
             self.current_stage.player.remove_hat()
 
-    def import_assets(self):
+    def import_assets(self) -> None:
         self.level_frames = {
             'flag': import_folder('..', 'graphics', 'level', 'flag'),
 			'saw': import_folder('..', 'graphics', 'enemies', 'saw', 'animation'),
@@ -124,7 +125,7 @@ class Game:
         self.bg_music = pygame.mixer.Sound(join('..', 'audio', 'starlight_city.mp3'))
         self.bg_music.set_volume(0.5)
 
-    def check_game_over(self):
+    def check_game_over(self) -> None:
         if self.data.health <= 0:
             if isinstance(self.current_stage, Level):
                 self.current_stage.pause()
@@ -134,26 +135,26 @@ class Game:
             self.current_stage.pause()
             self.game_over_layer.show()
 
-    def reset(self):
+    def reset(self) -> None:
         self.data = Data(self.ui, self.create_hat, self.remove_hat)
         self.current_stage = Overworld(self.tmx_overworld, self.data, self.overworld_frames, self.start_stage_transition)
         self.game_over_layer.hide()
 
-    def close(self): 
+    def close(self) -> None: 
         pygame.quit()
         sys.exit()
 
-    def resume_game(self):
+    def resume_game(self) -> None:
         self.menu.hide()
         if isinstance(self.current_stage, Level):
             self.current_stage.start()
 
-    def open_menu(self):
+    def open_menu(self) -> None:
         self.menu.show()
         if isinstance(self.current_stage, Level):
             self.current_stage.pause()
 
-    def run(self):
+    def run(self) -> None:
         while True:
             dt = self.clock.tick() / 1000
             for event in pygame.event.get():

@@ -1,12 +1,28 @@
 import pygame
+import pytmx
 from settings import *
 from sprites import Sprite, AnimatedSprite, Node, Icon, PathSprite
 from groups import WorldSprites
+from data import Data
 from random import randint
+from typing import Callable, Optional, Dict, List, Union
+
+
+OverworldFrames = Dict[
+    str, 
+    Union[
+        List[pygame.Surface], 
+        Dict[str, pygame.Surface], 
+        Dict[str, List[pygame.Surface]]
+    ]
+]
 
 
 class Overworld:
-    def __init__(self, tmx_map, data, overworld_frames, switch_stage):
+    def __init__(
+        self, tmx_map: pytmx.TiledMap, data: Data, 
+        overworld_frames: OverworldFrames, switch_stage: Callable[[str, Optional[int]], None]
+    ) -> None:
         self.display_surface = pygame.display.get_surface()
         self.data = data
         self.switch_stage = switch_stage
@@ -22,7 +38,7 @@ class Overworld:
         self.path_frames = overworld_frames['path']
         self.create_path_sprites()
 
-    def setup(self, tmx_map, overworld_frames):
+    def setup(self, tmx_map: pytmx.TiledMap, overworld_frames: OverworldFrames) -> None:
         # water
         for col in range(tmx_map.width):
             for row in range(tmx_map.height):
@@ -67,7 +83,7 @@ class Overworld:
                     paths = available_paths
                 )
 
-    def create_path_sprites(self):
+    def create_path_sprites(self) -> None:
 		# get tiles from path 
         nodes = {node.level: pygame.Vector2(node.grid_pos) for node in self.node_sprites}
         path_tiles = {}
@@ -125,7 +141,7 @@ class Overworld:
 						level = key
                     )
 
-    def input(self):
+    def input(self) -> None:
         keys = pygame.key.get_pressed()
         if self.current_node and not self.icon.path:
             if keys[pygame.K_s] and self.current_node.can_move('down'):
@@ -140,18 +156,18 @@ class Overworld:
                 self.data.current_level = self.current_node.level
                 self.switch_stage('level')
 
-    def move(self, direction: str):
+    def move(self, direction: str) -> None:
         path_key = int(self.current_node.paths[direction][0])
         path_reverse = True if self.current_node.paths[direction][-1] == 'r' else False
         path = self.paths[path_key]['pos'][:] if not path_reverse else self.paths[path_key]['pos'][::-1]
         self.icon.start_move(path)
 
-    def get_current_node(self):
+    def get_current_node(self) -> None:
         nodes = pygame.sprite.spritecollide(self.icon, self.node_sprites, False)
         if nodes:
             self.current_node = nodes[0]
 
-    def run(self, dt: float):
+    def run(self, dt: float) -> None:
         self.input()
         self.get_current_node()
         self.display_surface.fill('black')

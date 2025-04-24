@@ -2,14 +2,15 @@ import pygame
 from settings import *
 from os import walk
 from os.path import join
+from typing import Tuple, Dict, List
 
 
-def import_image(*path, alpha = True, format = 'png'):
+def import_image(*path: Tuple[str], alpha: bool = True, format: str = 'png') -> pygame.Surface:
     full_path = join(*path) + f".{format}"
     return pygame.image.load(full_path).convert_alpha() if alpha else pygame.image.load(full_path).convert()
 
 
-def import_folder(*path):
+def import_folder(*path: Tuple[str]) -> List[pygame.Surface]:
     frames = []
     for folder_path, subfolders, image_names in walk(join(*path)):
         for image_name in sorted(image_names, key = lambda name: int(name.split('.')[0])):
@@ -18,7 +19,7 @@ def import_folder(*path):
     return frames
 
 
-def import_folder_dict(*path):
+def import_folder_dict(*path: Tuple[str]) -> Dict[str, pygame.Surface]:
     frame_dict = {}
     for folder_path, _, image_names in walk(join(*path)):
         for image_name in image_names:
@@ -28,7 +29,7 @@ def import_folder_dict(*path):
     return frame_dict
 
 
-def import_sub_folders(*path):
+def import_sub_folders(*path: Tuple[str]) -> Dict[str, List[pygame.Surface]]:
     frame_dict = {}
     for _, sub_folders, __ in walk(join(*path)): 
         if sub_folders:

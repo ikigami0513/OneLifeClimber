@@ -3,17 +3,19 @@ from settings import *
 from sprites import Sprite, Cloud
 from random import choice, randint
 from hat import Hat, FallingHat
+from data import Data
 from timer_ import Timer
+from typing import Tuple, List, Dict, Union, Optional
 
 
 class WorldSprites(pygame.sprite.Group):
-    def __init__(self, data):
+    def __init__(self, data: Data):
         super().__init__()
         self.display_surface = pygame.display.get_surface()
         self.data = data
         self.offset = pygame.Vector2()
 
-    def draw(self, target_pos):
+    def draw(self, target_pos: Tuple[int, int]):
         self.offset.x = -(target_pos[0] - WINDOW_WIDTH / 2)
         self.offset.y = -(target_pos[1] - WINDOW_HEIGHT / 2)
 
@@ -36,12 +38,12 @@ class WorldSprites(pygame.sprite.Group):
 
 
 class AllSprites(pygame.sprite.Group):
-    def __init__(self, width, height, clouds, horizon_line, bg_tile = None, top_limit = 0):
+    def __init__(self, width: int, height: int, clouds: Dict[str, Union[List[pygame.Surface], pygame.Surface]], horizon_line: int, bg_tile: Optional[pygame.Surface] = None, top_limit: int = 0):
         super().__init__()
         self.display_surface = pygame.display.get_surface()
         self.offset = pygame.Vector2()
         self.width, self.height = width * TILE_SIZE, height * TILE_SIZE
-        self.borders = {
+        self.borders: Dict[str, int] = {
             'left': 0,
 			'right': -self.width + WINDOW_WIDTH,
 			'bottom': -self.height + WINDOW_HEIGHT,
@@ -74,13 +76,13 @@ class AllSprites(pygame.sprite.Group):
                 surf = choice(self.small_clouds)
                 Cloud(pos, surf, self)
 
-    def camera_constraint(self):
+    def camera_constraint(self) -> None:
         self.offset.x = self.offset.x if self.offset.x < self.borders['left'] else self.borders['left']
         self.offset.x = self.offset.x if self.offset.x > self.borders['right'] else self.borders['right'] 
         self.offset.y = self.offset.y if self.offset.y > self.borders['bottom'] else self.borders['bottom']
         self.offset.y = self.offset.y if self.offset.y < self.borders['top'] else self.borders['top']
 
-    def draw_sky(self):
+    def draw_sky(self) -> None:
         self.display_surface.fill("#DDC6A1")
         horizon_pos = self.horizon_line + self.offset.y
 
@@ -90,7 +92,7 @@ class AllSprites(pygame.sprite.Group):
         # horizon line
         pygame.draw.line(self.display_surface, "#F5F1DE", (0, horizon_pos), (WINDOW_WIDTH, horizon_pos), 4)
 
-    def draw_large_cloud(self, dt: float):
+    def draw_large_cloud(self, dt: float) -> None:
         self.large_cloud_x += self.cloud_direction * self.large_cloud_speed * dt
         if self.large_cloud_x <= -self.large_cloud_width:
             self.large_cloud_x = 0
@@ -99,12 +101,12 @@ class AllSprites(pygame.sprite.Group):
             top = self.horizon_line - self.large_cloud_height + self.offset.y
             self.display_surface.blit(self.large_cloud, (left, top))
 
-    def create_cloud(self):
+    def create_cloud(self) -> None:
         pos = (randint(self.width + 500, self.width + 600), randint(self.borders['top'], self.horizon_line))
         surf = choice(self.small_clouds)
         Cloud(pos, surf, self)
 
-    def draw(self, target_pos, dt):
+    def draw(self, target_pos: Tuple[int, int], dt: float) -> None:
         self.offset.x = -(target_pos[0] - WINDOW_WIDTH / 2)
         self.offset.y = -(target_pos[1] - WINDOW_HEIGHT / 2)
         self.camera_constraint()
@@ -118,7 +120,7 @@ class AllSprites(pygame.sprite.Group):
             offset_pos = sprite.rect.topleft + self.offset
             self.display_surface.blit(sprite.image, offset_pos)
             
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         for sprite in self.sprites():
             if not isinstance(sprite, Hat) and not isinstance(sprite, FallingHat):
                 sprite.update(dt)
